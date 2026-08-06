@@ -10,7 +10,7 @@ CREATE TABLE attraction (
     lng DOUBLE
 ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
-attractionCREATE TABLE attraction_image (
+CREATE TABLE attraction_image (
     image_id BIGINT AUTO_INCREMENT PRIMARY KEY,
     attraction_id BIGINT NOT NULL,
     image_url VARCHAR(500) NOT NULL,

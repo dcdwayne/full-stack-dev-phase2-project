@@ -3,6 +3,8 @@ from fastapi.responses import FileResponse
 
 from fastapi import Query
 from fastapi.responses import JSONResponse
+# 👇 引入 StaticFiles
+from fastapi.staticfiles import StaticFiles
 import mysql.connector
 import os
 from dotenv import load_dotenv
@@ -11,6 +13,9 @@ from dotenv import load_dotenv
 load_dotenv(override=True)
 
 app=FastAPI()
+
+# 告訴 FastAPI，所有對 /static 開頭的請求，都去 "static" 這個資料夾裡面找檔案
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # Static Pages (Never Modify Code in this Block)
 @app.get("/", include_in_schema=False)
@@ -104,8 +109,19 @@ async def get_attractions(
                 img_dict[aid].append(img["image_url"])
 
             # 將整理好的圖片陣列塞回主資料 (data) 中
+            domain_prefix = "https://padax.github.io/taipei-day-trip-resources"
+            
             for row in data:
-                row["images"] = img_dict.get(row["id"], [])
+                raw_images = img_dict.get(row["id"], [])
+                # 透過 List Comprehension 檢查並補上完整的網域
+                formatted_images = []
+                for img in raw_images:
+                    if img.startswith("/imgs"):
+                        formatted_images.append(f"{domain_prefix}{img}")
+                    else:
+                        formatted_images.append(img)
+                
+                row["images"] = formatted_images
 
         # 5. 回傳正確格式
         return {
@@ -160,8 +176,15 @@ async def get_attraction_by_id(
         cursor.execute(sql_images, (attractionId,))
         images_data = cursor.fetchall()
 
-        # 將撈出來的圖片整理成一個 List
-        image_urls = [img["image_url"] for img in images_data]
+        # 將撈出來的圖片整理成一個 List，並補上完整網域
+        domain_prefix = "https://padax.github.io/taipei-day-trip-resources"
+        image_urls = []
+        for img in images_data:
+            url = img["image_url"]
+            if url.startswith("/imgs"):
+                image_urls.append(f"{domain_prefix}{url}")
+            else:
+                image_urls.append(url)
 
         # 3. 組合並回傳正確格式
         attraction_data["images"] = image_urls
@@ -272,4 +295,4 @@ async def get_mrts():
 @app.get("/favicon.ico", include_in_schema=False)
 async def favicon():
     # 直接回傳 static 資料夾裡面的圖片
-    return FileResponse("static/favicon.ico")
+    return FileResponse("static/img/favicon.ico")

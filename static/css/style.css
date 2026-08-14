@@ -145,27 +145,29 @@ a {
 
 /* 搜尋按鈕（放大鏡）調整 */
 .search-btn {
-    /* 依據設計規範，使用 CYAN 70 色號 */
     background-color: #448899; 
     border: none;
     width: 60px;
-    /* 確保高度填滿父層 (.search-bar) 的 46px */
     height: 100%; 
     cursor: pointer;
     display: flex;
     justify-content: center;
     align-items: center;
+    /* 👇 新增這行，強制按鈕絕對不能被壓縮 👇 */
+    flex-shrink: 0;   
 }
 
 /* 搜尋輸入框微調 */
 .search-input {
     flex: 1;
     border: none;
-    border-left: 1px solid #e8e8e8; /* 加上與分類按鈕之間的分隔線 */
+    border-left: 1px solid #e8e8e8;
     padding: 0 15px;
     font-size: 16px;
     outline: none;
     background: transparent;
+    /* 👇 新增這行，允許輸入框在空間不夠時縮小，把空間讓給按鈕 👇 */
+    min-width: 0;
 }
 
 /* 下拉選單面板 */
@@ -216,27 +218,42 @@ a {
     padding: 20px 0;
 }
 
+/* 捷運站外層容器 */
 .mrt-container {
     display: flex;
     align-items: center;
+    /* 新增：確保容器不會撐破螢幕 */
+    width: 100%;
+    max-width: 100%;
 }
 
+/* 捷運站左右箭頭按鈕 */
 .mrt-btn {
-    background: none;
-    border: none;
-    font-size: 20px;
+    background: #ffffff;
+    border: 1px solid gray; /* 加上灰色邊框 */
+    border-radius: 50%; /* 變成正圓形 */
+    width: 32px; /* 固定寬高 */
+    height: 32px;
+    font-size: 16px;
     cursor: pointer;
-    padding: 0 10px;
-    color: #666;
+    color: #666666;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-shrink: 0; /* 絕對不允許被擠壓 */
+    margin: 0 10px; /* 與左右保留間距 */
 }
 
+/* 捷運站列表 */
 .mrt-list {
     display: flex;
     overflow-x: auto;
     white-space: nowrap;
-    gap: 15px;
+    gap: 30px; /* 依照 Figma 稍微加寬間距 */
     flex: 1;
-    scrollbar-width: none; /* 隱藏捲軸 (Firefox) */
+    scrollbar-width: none;
+    /* 👇 關鍵：打破 Flex 子元素的最小寬度限制，避免 < > 被擠出畫面 👇 */
+    min-width: 0; 
 }
 
 .mrt-list::-webkit-scrollbar {
@@ -329,15 +346,11 @@ footer {
     
     .search-wrapper {
         width: 90%; /* 避免搜尋列太貼近螢幕邊緣 */
-        margin: 0 auto; /* 確保置中 */
     }
 }
 
 /* 針對手機尺寸 (600px 以下) */
 @media (max-width: 600px) {
-    .hero {
-        height: 280px; /* 依照手機比例縮減高度 */
-    }
     
     .grid-container {
         /* 手機版改為單欄，卡片寬度吃滿 */
@@ -347,7 +360,6 @@ footer {
 
     .search-wrapper {
         width: 90%; /* 確保手機版搜尋框左右有留白 */
-        margin: 0 auto;
     }
 
     /* 手機版分類選單微調，避免 300px 在極小螢幕被截斷 */
@@ -355,5 +367,31 @@ footer {
         width: 100%;
         /* 可選：若在手機上覺得 3 欄太擠，可以改為 2 欄 */
         /* grid-template-columns: repeat(2, 1fr); */
+    }
+
+    /* 微調手機版搜尋列，避免 360px 時文字被截斷 */
+    .category-btn {
+        padding: 0 10px;
+        font-size: 14px;
+    }
+    .search-input {
+        padding: 0 10px; 
+        font-size: 14px;
+    }
+    .search-btn {
+        width: 50px;
+    }
+
+    /* 手機版捷運站按鈕間距微調 */
+    .mrt-section {
+        /* 🎯 手機版將上下 Padding 加大到 30px 或 40px */
+        padding: 35px 0; 
+    }
+
+    .mrt-btn {
+        margin: 0 5px;
+    }
+    .mrt-list {
+        gap: 15px;
     }
 }

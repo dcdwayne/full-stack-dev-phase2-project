@@ -1,0 +1,397 @@
+/* ====================
+    1. CSS Reset & Base
+    ==================== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Noto Sans TC', sans-serif;
+}
+
+body {
+    background-color: #ffffff;
+    color: #333333;
+}
+
+ul {
+    list-style: none;
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+/* 限制內容最大寬度並置中 (設計稿規格: 1200px) */
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 15px; /* 避免手機版內容貼齊邊緣 */
+}
+
+/* ====================
+    2. Navigation Bar
+    ==================== */
+.navbar {
+    position: sticky; /* 凍結在最上方 */
+    top: 0;
+    background-color: #ffffff;
+    z-index: 100;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1); /* 稍微加點陰影區分區塊 */
+}
+
+.navbar .container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 54px; 
+}
+
+.navbar .logo {
+    font-size: 30px;
+    font-weight: bold;
+    color: #448899;
+}
+
+.nav-links {
+    display: flex;
+    gap: 20px;
+}
+
+.nav-links li {
+    font-size: 16px;
+    color: #666666;
+    cursor: pointer;
+}
+
+/* ====================
+    3. Hero Section (主圖區塊)
+    ==================== */
+.hero {
+    /* 指定的台北 101 背景圖 */
+    background-color: #88bbcc; 
+    /* 👇 加上 /static/ 前綴 👇 */
+    background-image: linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.3)), url('/static/img/welcome.png');
+    background-size: cover;
+    /* 👇 由上往下取畫面 👇 */
+    background-position: center top;
+    height: 320px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.hero-content {
+    text-align: left;
+    width: 100%;
+    max-width: 1200px;
+    padding: 0 15px;
+}
+
+.hero-title {
+    color: #ffffff;
+    font-size: 28px;
+    font-weight: bold;
+    margin-bottom: 15px;
+    text-shadow: 0 0 5px rgba(0,0,0,0.5);
+}
+
+.hero-subtitle {
+    color: #ffffff;
+    font-size: 16px;
+    margin-bottom: 25px;
+    font-weight: bold;
+}
+
+/* ====================
+搜尋區塊與下拉選單
+==================== */
+.search-wrapper {
+    position: relative; /* 關鍵：讓下拉選單依附這個容器做絕對定位 */
+    max-width: 460px;
+}
+
+/* 搜尋外框調整 */
+.search-bar {
+    display: flex;
+    height: 46px;
+    background: #fff;
+    border-radius: 5px;
+    /* 確保內部元素（如搜尋按鈕）的背景色不會溢出圓角 */
+    overflow: hidden; 
+}
+
+/* 分類按鈕（全部分類） */
+.category-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 15px;
+    cursor: pointer;
+    /* 依據規格，取消粗體，改用 Medium 或正常字重 */
+    font-size: 16px;
+    font-weight: 500; 
+    color: #000;
+    /* 加上你提到的灰色底色，這裡使用淺灰區分輸入框 */
+    background-color: #f5f5f5; 
+    white-space: nowrap;
+    user-select: none;
+}
+
+.category-btn .arrow-icon {
+    font-size: 12px;
+    margin-left: 8px;
+}
+
+/* 搜尋按鈕（放大鏡）調整 */
+.search-btn {
+    background-color: #448899; 
+    border: none;
+    width: 60px;
+    height: 100%; 
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    /* 👇 新增這行，強制按鈕絕對不能被壓縮 👇 */
+    flex-shrink: 0;   
+}
+
+/* 搜尋輸入框微調 */
+.search-input {
+    flex: 1;
+    border: none;
+    border-left: 1px solid #e8e8e8;
+    padding: 0 15px;
+    font-size: 16px;
+    outline: none;
+    background: transparent;
+    /* 👇 新增這行，允許輸入框在空間不夠時縮小，把空間讓給按鈕 👇 */
+    min-width: 0;
+}
+
+/* 下拉選單面板 */
+.category-menu {
+    display: none; /* 預設隱藏 */
+    position: absolute;
+    top: calc(100% + 5px); /* 貼齊搜尋列底部，並往下推 5px */
+    left: 0;
+    width: 300px; /* 依照 Figma 規格 */
+    background-color: #ffffff;
+    border-radius: 5px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2); /* 加上陰影增加立體感 */
+    z-index: 10; /* 確保浮在景點卡片上方 */
+    padding: 10px;
+    
+    /* 這裡使用 Grid 排列成 3 欄 */
+    grid-template-columns: repeat(3, 1fr);
+    gap: 5px;
+}
+
+/* 透過 JS 切換這個 class 來顯示面板 */
+.category-menu.active {
+    display: grid;
+}
+
+/* 下拉選單項目字體對齊規格 */
+.category-item {
+    padding: 10px 5px;
+    text-align: center;
+    /* 依據規格書 "Category List"，使用 Size 14 與 Medium 字重 */
+    font-size: 14px; 
+    font-weight: 500; 
+    color: #000;
+    cursor: pointer;
+    border-radius: 3px;
+    transition: background-color 0.2s;
+}
+
+.category-item:hover {
+    /* 依據互動狀態設計，懸停時呈現灰色底 */
+    background-color: #e8e8e8; 
+}
+
+/* ====================
+    4. MRT List Bar (捷運站橫向捲動列)
+    ==================== */
+.mrt-section {
+    padding: 20px 0;
+}
+
+/* 捷運站外層容器 */
+.mrt-container {
+    display: flex;
+    align-items: center;
+    /* 新增：確保容器不會撐破螢幕 */
+    width: 100%;
+    max-width: 100%;
+}
+
+/* 捷運站左右箭頭按鈕 */
+.mrt-btn {
+    background: #ffffff;
+    border: 1px solid gray; /* 加上灰色邊框 */
+    border-radius: 50%; /* 變成正圓形 */
+    width: 32px; /* 固定寬高 */
+    height: 32px;
+    font-size: 16px;
+    cursor: pointer;
+    color: #666666;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-shrink: 0; /* 絕對不允許被擠壓 */
+    margin: 0 10px; /* 與左右保留間距 */
+}
+
+/* 捷運站列表 */
+.mrt-list {
+    display: flex;
+    overflow-x: auto;
+    white-space: nowrap;
+    gap: 30px; /* 依照 Figma 稍微加寬間距 */
+    flex: 1;
+    scrollbar-width: none;
+    /* 👇 關鍵：打破 Flex 子元素的最小寬度限制，避免 < > 被擠出畫面 👇 */
+    min-width: 0; 
+}
+
+.mrt-list::-webkit-scrollbar {
+    display: none; /* 隱藏捲軸 (Chrome/Safari) */
+}
+
+.mrt-item {
+    color: #666;
+    cursor: pointer;
+}
+
+/* ====================
+    5. Attractions Grid (景點網格)
+    ==================== */
+.attractions-section {
+    padding-bottom: 40px;
+}
+
+.grid-container {
+    display: grid;
+    /* 響應式核心：卡片最小 270px，空間夠就自動排滿 */
+    grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+    gap: 30px;
+}
+
+.card {
+    border: 1px solid #e8e8e8;
+    border-radius: 5px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.card-img-box {
+    position: relative;
+    height: 200px;
+    background-color: #ddd; /* 圖片載入前的骨架底色 */
+}
+
+.card-img-box img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.card-title {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    color: white;
+    padding: 10px;
+    font-weight: bold;
+}
+
+.card-info {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px;
+    color: #666;
+    font-size: 16px;
+}
+
+/* ====================
+    6. Footer
+    ==================== */
+footer {
+    background-color: #757575;
+    color: white;
+    text-align: center;
+    padding: 40px 0;
+    font-size: 16px;
+}
+
+/* ====================
+    7. Media Queries (響應式微調)
+    ==================== */
+
+/* 針對平板尺寸 (601px ~ 1200px) */
+@media (max-width: 1200px) and (min-width: 601px) {
+    .hero {
+        height: 300px; /* 主圖高度微調，介於桌機與手機之間 */
+    }
+    
+    .grid-container {
+        /* 平板版強制分為 2 欄，讓視覺更整齊一致 */
+        grid-template-columns: repeat(2, 1fr);
+        gap: 25px; /* 稍微縮小卡片間距 */
+    }
+    
+    .search-wrapper {
+        width: 90%; /* 避免搜尋列太貼近螢幕邊緣 */
+    }
+}
+
+/* 針對手機尺寸 (600px 以下) */
+@media (max-width: 600px) {
+    
+    .grid-container {
+        /* 手機版改為單欄，卡片寬度吃滿 */
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+
+    .search-wrapper {
+        width: 90%; /* 確保手機版搜尋框左右有留白 */
+    }
+
+    /* 手機版分類選單微調，避免 300px 在極小螢幕被截斷 */
+    .category-menu {
+        width: 100%;
+        /* 可選：若在手機上覺得 3 欄太擠，可以改為 2 欄 */
+        /* grid-template-columns: repeat(2, 1fr); */
+    }
+
+    /* 微調手機版搜尋列，避免 360px 時文字被截斷 */
+    .category-btn {
+        padding: 0 10px;
+        font-size: 14px;
+    }
+    .search-input {
+        padding: 0 10px; 
+        font-size: 14px;
+    }
+    .search-btn {
+        width: 50px;
+    }
+
+    /* 手機版捷運站按鈕間距微調 */
+    .mrt-section {
+        /* 🎯 手機版將上下 Padding 加大到 30px 或 40px */
+        padding: 35px 0; 
+    }
+
+    .mrt-btn {
+        margin: 0 5px;
+    }
+    .mrt-list {
+        gap: 15px;
+    }
+}

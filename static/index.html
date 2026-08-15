@@ -1,11 +1,298 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Index</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>台北一日遊</title>
+
+    <link rel="stylesheet" type = "text/css" href="/static/css/style.css"/>
+
 </head>
 <body>
-  
+
+    <!-- 導覽列 -->
+    <header class="navbar">
+        <div class="container">
+            <a href="#" class="logo">台北一日遊</a>
+            <ul class="nav-links">
+                <li>預定行程</li>
+                <li>登入/註冊</li>
+            </ul>
+        </div>
+    </header>
+
+    <!-- 主圖搜尋區 -->
+    <section class="hero">
+        <div class="hero-content">
+            <h1 class="hero-title">輕鬆享受台北一日遊</h1>
+            <p class="hero-subtitle">探索每個角落，體驗城市的深度旅遊行程</p>
+            <!-- 搜尋列外層容器 (用來定位下拉選單) -->
+            <div class="search-wrapper">
+                <div class="search-bar">
+                    <!-- 新增：分類按鈕 -->
+                    <div class="category-btn" id="categoryBtn">
+                        <span id="currentCategory">全部分類</span>
+                        <span class="arrow-icon">▼</span>
+                    </div>
+                    
+                    <input type="text" class="search-input" placeholder="輸入景點名稱查詢">
+                    
+                    <button class="search-btn">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                    </button>
+                </div>
+
+                <!-- 新增：分類下拉選單 (預設隱藏) -->
+                <div class="category-menu" id="categoryMenu">
+                    <!-- Part 2-4 (分類選單) -->
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 主要內容區 -->
+    <main class="container">
+        <!-- 捷運站列表 -->
+        <section class="mrt-section">
+            <div class="mrt-container">
+                <button class="mrt-btn">&lt;</button>
+                <ul class="mrt-list">
+                    <!-- Part 2-6(捷運站列表)-->
+                </ul>
+                <button class="mrt-btn">&gt;</button>
+            </div>
+        </section>
+
+        <!-- 景點網格 -->
+        <section class="attractions-section">
+            <!-- 留下這個空的容器，我們等一下用 JS 把卡片生出來塞進去 -->
+            <div class="grid-container" id="attractionsGrid">
+                <!-- JS 動態產生的卡片會放在這裡 -->
+            </div>
+            <!-- 👇 新增：無限捲動的觀察目標 👇 -->
+            <div id="loadingSentinel" style="height: 20px; width: 100%;"></div>    
+        </section>
+    </main>
+
+    <!-- 頁尾 -->
+    <footer>
+        COPYRIGHT © 2021 台北一日遊
+    </footer>
+    <script>
+        // 取得按鈕與選單元素
+        const categoryBtn = document.getElementById('categoryBtn');
+        const categoryMenu = document.getElementById('categoryMenu');
+
+        // 點擊按鈕時，切換選單的 active 狀態 (顯示/隱藏)
+        categoryBtn.addEventListener('click', (e) => {
+            e.stopPropagation(); // 阻止事件冒泡
+            categoryMenu.classList.toggle('active');
+        });
+
+        // 點擊畫面其他地方時，關閉選單
+        document.addEventListener('click', (e) => {
+            if (!categoryMenu.contains(e.target) && !categoryBtn.contains(e.target)) {
+                categoryMenu.classList.remove('active');
+            }
+        });
+        // ==========================================
+        // 全域狀態變數 (State Management)
+        // ==========================================
+        let nextPage = 0;             // 記錄下一頁的頁碼，null 代表沒有下一頁了
+        let isLoading = false;        // 防止短時間內重複發送 API 請求
+        let currentKeyword = '';      // 目前搜尋的關鍵字
+        let currentCategory = '';     // 目前搜尋的分類
+
+        // DOM 元素
+        const attractionsGrid = document.getElementById('attractionsGrid');
+        const loadingSentinel = document.getElementById('loadingSentinel');
+        const searchBtn = document.querySelector('.search-btn');
+        const searchInput = document.querySelector('.search-input');
+        const currentCategorySpan = document.getElementById('currentCategory');
+
+        // ==========================================
+        // Part 2-2, 2-3, 2-5: 核心抓取資料與渲染邏輯
+        // ==========================================
+        async function fetchAttractions(page, isNewSearch = false) {
+            // 1. 防呆機制：如果正在載入中，或是沒有下一頁 (null)，就不要執行
+            if (isLoading || page === null) return;
+            
+            isLoading = true; // 標記為載入中
+            
+            // 👇 關鍵修正 1：開始抓資料時，先停止觀察底部，避免在渲染過程中重複觸發
+            observer.unobserve(loadingSentinel);
+
+            try {
+                // 2. 動態組合 API 網址 (處理 Part 2-5 的搜尋條件)
+                let url = `/api/attractions?page=${page}`;
+                if (currentCategory) url += `&category=${encodeURIComponent(currentCategory)}`;
+                if (currentKeyword) url += `&keyword=${encodeURIComponent(currentKeyword)}`;
+
+                const response = await fetch(url);
+                const result = await response.json();
+                
+                // 3. 如果是全新搜尋，清空原本畫面上的舊卡片
+                if (isNewSearch) {
+                    attractionsGrid.innerHTML = '';
+                }
+                
+                 // 4. 渲染資料
+                if (result.data && result.data.length > 0) {
+                    renderAttractions(result.data);
+                } else if (isNewSearch) {
+                    // 處理搜尋不到資料的狀況
+                    attractionsGrid.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; color: #666; padding: 50px 0;">查無相關景點資料</div>';
+                }
+                
+                // 5. 更新下一頁的狀態 (將後端回傳的 nextPage 存起來)
+                nextPage = result.nextPage;
+
+            } catch (error) {
+                console.error("無法取得景點資料:", error);
+            } finally {
+                isLoading = false;
+                
+                // 👇 關鍵修正 2：資料渲染完畢後，確認如果還有下一頁，才把觀察器「掛」回去
+                if (nextPage !== null) {
+                    observer.observe(loadingSentinel);
+                }
+            }
+        }
+
+        function renderAttractions(attractions) {
+            attractions.forEach(attraction => {
+                const firstImage = attraction.images && attraction.images.length > 0 ? attraction.images[0] : '';
+                const cardContainer = document.createElement('div');
+                cardContainer.className = 'card';
+                cardContainer.innerHTML = `
+                    <div class="card-img-box">
+                        <img src="${firstImage}" alt="${attraction.name}">
+                        <div class="card-title">${attraction.name}</div>
+                    </div>
+                    <div class="card-info">
+                        <span>${attraction.mrt || '無'}</span>
+                        <span>${attraction.category}</span>
+                    </div>
+                `;
+                attractionsGrid.appendChild(cardContainer);
+            });
+        }
+
+        // ==========================================
+        // Part 2-3: 實作 IntersectionObserver (無限捲動)
+        // ==========================================
+        const observer = new IntersectionObserver((entries) => {
+            const entry = entries[0];
+            // 只要觸發了進入畫面，且還有下一頁，就去抓資料
+            if (entry.isIntersecting && nextPage !== null) {
+                fetchAttractions(nextPage, false);
+            }
+        }, {
+            root: null,
+            rootMargin: '100px', 
+            threshold: 0
+        });
+
+        // ==========================================
+        // Part 2-5: 觸發搜尋功能
+        // ==========================================
+        function triggerSearch() {
+            // 1. 抓取當前的過濾條件
+            const categoryText = currentCategorySpan.textContent.trim();
+            // 如果是「全部分類」，就不要帶入這個條件
+            currentCategory = (categoryText === '全部分類') ? '' : categoryText; 
+            currentKeyword = searchInput.value.trim();
+
+            // 2. 重置狀態並發動全新搜尋
+            nextPage = 0;
+            fetchAttractions(nextPage, true);
+        }
+
+        // 綁定搜尋按鈕點擊事件
+        searchBtn.addEventListener('click', triggerSearch);
+
+
+        // ==========================================
+        // Part 2-4 & 2-6: 分類與捷運站初始化 (稍作更新)
+        // ==========================================
+        async function initCategories() {
+            try {
+                const response = await fetch('/api/categories');
+                const result = await response.json();
+                if (result.data) {
+                    categoryMenu.innerHTML = ''; 
+                    
+                    // 👇 修正：手動加入「全部分類」選項，確保使用者可以取消篩選
+                    const allCategoryItem = document.createElement('div');
+                    allCategoryItem.className = 'category-item';
+                    allCategoryItem.textContent = '全部分類';
+                    allCategoryItem.addEventListener('click', () => {
+                        currentCategorySpan.textContent = '全部分類';
+                        categoryMenu.classList.remove('active');
+                    });
+                    categoryMenu.appendChild(allCategoryItem);
+
+                    // 接著才是把 API 撈回來的分類塞進去
+                    result.data.forEach(category => {
+                        const item = document.createElement('div');
+                        item.className = 'category-item';
+                        item.textContent = category;
+                        item.addEventListener('click', () => {
+                            currentCategorySpan.textContent = category;
+                            categoryMenu.classList.remove('active');
+                        });
+                        categoryMenu.appendChild(item);
+                    });
+                }
+            } catch (error) {
+                console.error("無法取得分類資料:", error);
+            }
+        }
+
+        async function initMRTs() {
+            try {
+                const response = await fetch('/api/mrts');
+                const result = await response.json();
+                const mrtList = document.querySelector('.mrt-list');
+                if (result.data) {
+                    mrtList.innerHTML = ''; 
+                    result.data.forEach(mrt => {
+                        const item = document.createElement('li');
+                        item.className = 'mrt-item';
+                        item.textContent = mrt;
+                        item.addEventListener('click', () => {
+                            // 👇 更新：點擊捷運站後，自動填寫並觸發搜尋
+                            searchInput.value = mrt;
+                            triggerSearch(); 
+                        });
+                        mrtList.appendChild(item);
+                    });
+                }
+            } catch (error) {
+                console.error("無法取得捷運站資料:", error);
+            }
+        }
+
+        function initMrtScroll() {
+            const scrollBtns = document.querySelectorAll('.mrt-btn');
+            const mrtListContainer = document.querySelector('.mrt-list');
+            scrollBtns[0].addEventListener('click', () => {
+                mrtListContainer.scrollBy({ left: -300, behavior: 'smooth' }); 
+            });
+            scrollBtns[1].addEventListener('click', () => {
+                mrtListContainer.scrollBy({ left: 300, behavior: 'smooth' });
+            });
+        }
+
+        // ==========================================
+        // 頁面載入執行區
+        // ==========================================
+        initCategories();
+        initMRTs();
+        initMrtScroll();
+        // 初始載入第一頁的資料 (不帶條件)
+        fetchAttractions(0, true);
+    </script>
+
 </body>
 </html>

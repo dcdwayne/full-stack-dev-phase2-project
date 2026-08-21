@@ -1,0 +1,322 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: "Noto Sans TC", sans-serif;
+}
+
+body {
+  color: #666666;
+  background-color: #ffffff;
+}
+
+/* 導覽列 */
+.navbar {
+  width: 100%;
+  height: 54px;
+  background: #ffffff;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  border-bottom: 1px solid #e8e8e8;
+  display: flex;
+  justify-content: center;
+}
+
+.nav-container {
+  width: 1200px;
+  max-width: 100%;
+  padding: 0 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.nav-logo {
+  font-size: 30px;
+  font-weight: 700;
+  color: #448899;
+  text-decoration: none;
+}
+
+.nav-menu {
+  display: flex;
+  gap: 20px;
+}
+
+.nav-item {
+  color: #666666;
+  text-decoration: none;
+  font-size: 16px;
+}
+
+/* 主內容區 */
+.main-wrapper {
+  max-width: 1200px;
+  margin: 40px auto;
+  padding: 0 15px;
+}
+
+/* 上半部：輪播圖 + 表單 */
+.overview-section {
+  display: flex;
+  gap: 30px;
+  justify-content: center;
+}
+
+/* 輪播圖容器 */
+.carousel-container {
+  width: 540px;
+  height: 406px;
+  position: relative;
+  border-radius: 5px;
+  overflow: hidden;
+  background-color: #f3f3f3;
+  flex-shrink: 0;
+}
+
+.carousel-track {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  position: relative;
+}
+
+.carousel-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  flex-shrink: 0;
+  position: absolute;
+  top: 0;
+  left: 0;
+  opacity: 0;
+  transition: opacity 0.4s ease-in-out;
+}
+
+.carousel-img.active {
+  opacity: 1;
+  z-index: 1;
+}
+
+/* 左右切換按鈕：淺灰半透明底 + 黑色箭頭 */
+.carousel-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 36px;
+  height: 36px;
+  background-color: rgba(255, 255, 255, 0.75);
+  background-image: url('data:image/svg+xml;utf8,<svg fill="%23000000" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>');
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 24px;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  z-index: 10;
+  opacity: 0.8;
+  transition: background-color 0.2s, opacity 0.2s;
+}
+
+.carousel-btn:hover {
+  opacity: 1;
+  background-color: rgba(255, 255, 255, 0.95);
+}
+
+.prev-btn {
+  left: 10px;
+}
+
+.next-btn {
+  right: 10px;
+  transform: translateY(-50%) rotate(180deg);
+}
+
+/* 底部橫向指示條容器：貼齊最底端、滿版等寬無邊距 */
+.carousel-dots {
+  position: absolute;
+  bottom: 0;       /* 貼齊圖片最底部 */
+  left: 0;         /* 從最左側開始 */
+  width: 100%;     /* 寬度與圖片完全對齊 */
+  height: 4px;     /* 指示條高度（可依需求微調，如 4px 或 6px） */
+  display: flex;
+  gap: 0;          /* 各段無縫相連 */
+  z-index: 10;
+}
+
+/* 均分區段：每一段代表一張圖片 */
+.indicator-bar {
+  flex: 1;
+  height: 100%;
+  background-color: rgba(255, 255, 255, 0.6); /* 預設半透明淺色底 */
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+/* 當前圖片所在的區段反黑 */
+.indicator-bar.active {
+  background-color: #000000;
+}
+
+/* 右側資訊與預約卡片 */
+.profile-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.attraction-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #666666;
+  margin-bottom: 15px;
+}
+
+.attraction-meta {
+  font-size: 16px;
+  color: #666666;
+  margin-bottom: 20px;
+}
+
+/* 預約卡片 */
+.booking-card {
+  background: #e8e8e8;
+  border-radius: 5px;
+  padding: 20px 20px 40px 20px;
+}
+
+.booking-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #666666;
+  margin-bottom: 15px;
+}
+
+.booking-subtitle {
+  font-size: 16px;
+  color: #666666;
+  margin-bottom: 20px;
+}
+
+.booking-form .form-group {
+  display: flex;
+  align-items: center;
+  margin-bottom: 15px;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.form-label {
+  margin-right: 5px;
+  white-space: nowrap;
+}
+
+.form-input-date {
+  padding: 5px 10px;
+  border: none;
+  font-size: 16px;
+  outline: none;
+}
+
+.radio-group {
+  display: flex;
+  gap: 18px;
+  align-items: center;
+  font-weight: 500;
+}
+
+.radio-label {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.price-text {
+  font-weight: 500;
+}
+
+.booking-submit-btn {
+  margin-top: 10px;
+  padding: 10px 20px;
+  background-color: #448899;
+  color: #ffffff;
+  border: none;
+  border-radius: 5px;
+  font-size: 19px;
+  cursor: pointer;
+}
+
+/* 分隔線 */
+.section-divider {
+  border: none;
+  border-top: 1px solid #e8e8e8;
+  margin: 40px 0;
+}
+
+/* 下半部詳細介紹 */
+.detail-section {
+  font-size: 16px;
+  line-height: 1.8;
+  color: #666666;
+}
+
+.attraction-description {
+  margin-bottom: 25px;
+  white-space: pre-line;
+}
+
+.info-block {
+  margin-bottom: 20px;
+}
+
+.info-title {
+  font-weight: 700;
+  margin-bottom: 5px;
+}
+
+/* 頁尾 */
+.footer {
+  width: 100%;
+  height: 104px;
+  background: #757575;
+  color: #ffffff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 16px;
+  font-weight: 700;
+  margin-top: 40px;
+}
+
+/* RWD 斷點調整 (平板與手機版) */
+@media (max-width: 1200px) {
+  .main-wrapper {
+    margin: 0 auto;
+    padding: 0;
+  }
+
+  .overview-section {
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .carousel-container {
+    width: 100%;
+    height: 350px;
+    border-radius: 0;
+  }
+
+  .profile-container {
+    padding: 0 20px;
+  }
+
+  .section-divider {
+    margin: 30px 20px;
+  }
+
+  .detail-section {
+    padding: 0 20px;
+  }
+}

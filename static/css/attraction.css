@@ -233,6 +233,38 @@ body {
   gap: 4px;
 }
 
+/* ==========================================
+   👇 針對客製化單選按鈕新增的 CSS 👇
+   ========================================== */
+
+/* 1. 把原生的 input 隱藏起來 */
+.radio-label input[type="radio"] {
+  display: none;
+}
+
+/* 2. 畫出未選中時的「白色外圈」 */
+.radio-custom {
+  display: inline-block;
+  width: 20px;         /* 外圈設定為 20px */
+  height: 20px;
+  background-color: #ffffff; /* 白色底 */
+  border-radius: 50%;  /* 變成圓形 */
+  position: relative;  /* 讓裡面的點點能絕對定位在正中間 */
+}
+
+/* 3. 當 input 被勾選 (:checked) 時，利用 ::after 畫出「90% 填滿的顏色內圈」 */
+.radio-label input[type="radio"]:checked + .radio-custom::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%); /* 確保點點在正中心 */
+  width: 16px;         /* 內圈 16px，剛好佔外圈 80% */
+  height: 16px;
+  background-color: #448899; /* 設計稿顏色 */
+  border-radius: 50%;
+}
+
 .price-text {
   font-weight: 500;
 }

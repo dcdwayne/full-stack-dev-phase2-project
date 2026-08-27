@@ -284,6 +284,8 @@ a {
     border-radius: 5px;
     overflow: hidden;
     display: flex;
+    text-decoration: none; /* 移除預設底線 */
+    color: inherit;        /* 繼承原本的字體顏色 */
     flex-direction: column;
 }
 

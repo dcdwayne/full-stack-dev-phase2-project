@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>台北一日遊</title>
-
-    <link rel="stylesheet" type = "text/css" href="/static/css/style.css"/>
+    <link rel="stylesheet" type="text/css" href="/static/css/auth.css"/>
+    <link rel="stylesheet" type = "text/css" href="/static/css/index.css"/>
 
 </head>
 <body>
@@ -13,11 +13,11 @@
     <!-- 導覽列 -->
     <header class="navbar">
         <div class="container">
-            <a href="#" class="logo">台北一日遊</a>
-            <ul class="nav-links">
-                <li>預定行程</li>
-                <li>登入/註冊</li>
-            </ul>
+            <a href="/" class="logo">台北一日遊</a>
+                <ul class="nav-links">
+                    <li>預定行程</li>
+                    <li id="nav-auth-btn" style="cursor:pointer;">登入/註冊</li>
+                </ul>
         </div>
     </header>
 
@@ -162,8 +162,13 @@
         function renderAttractions(attractions) {
             attractions.forEach(attraction => {
                 const firstImage = attraction.images && attraction.images.length > 0 ? attraction.images[0] : '';
-                const cardContainer = document.createElement('div');
+                
+                // 1. 將容器改為 <a> 標籤，並給予超連結
+                const cardContainer = document.createElement('a');
                 cardContainer.className = 'card';
+                cardContainer.href = `/attraction/${attraction.id}`;
+                
+                // 2. 內部結構保持不變
                 cardContainer.innerHTML = `
                     <div class="card-img-box">
                         <img src="${firstImage}" alt="${attraction.name}">
@@ -293,6 +298,7 @@
         // 初始載入第一頁的資料 (不帶條件)
         fetchAttractions(0, true);
     </script>
+    <script src="/static/js/auth.js"></script>
 
 </body>
 </html>

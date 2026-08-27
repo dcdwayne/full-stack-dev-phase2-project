@@ -1,4 +1,5 @@
 from fastapi import *
+from fastapi import FastAPI, HTTPException, Header
 from fastapi.responses import FileResponse
 
 from fastapi import Query
@@ -8,6 +9,11 @@ from fastapi.staticfiles import StaticFiles
 import mysql.connector
 import os
 from dotenv import load_dotenv
+from pydantic import BaseModel
+# 導入寫好的模組
+import crud
+import security
+
 
 # 強制載入 .env 檔案中的變數到目前的環境中
 load_dotenv(override=True)
@@ -30,6 +36,80 @@ async def booking(request: Request):
 @app.get("/thankyou", include_in_schema=False)
 async def thankyou(request: Request):
 	return FileResponse("./static/thankyou.html", media_type="text/html")
+
+# 定義 Pydantic Models 用於接收前端資料
+class UserSignUp(BaseModel):
+    name: str
+    email: str
+    password: str
+
+class UserSignIn(BaseModel):
+    email: str
+    password: str
+
+# --- 1. Sign Up (註冊 API) ---
+@app.post("/api/user")
+async def sign_up(user_data: UserSignUp): # 改用 Pydantic Model 接收
+    # 1. 檢查 email
+    # 記得加上 crud. 呼叫
+    if crud.get_user_by_email(user_data.email):
+        raise HTTPException(status_code=400, detail="信箱已經被註冊過了")
+    
+    # 2. 密碼加密
+    # 記得加上 security. 呼叫
+    hashed_pwd = security.get_password_hash(user_data.password)
+    
+    # 3. 存入資料庫
+    success = crud.create_user(user_data.name, user_data.email, hashed_pwd)
+    if success:
+        return {"ok": True}
+    else:
+        raise HTTPException(status_code=500, detail="伺服器錯誤")
+
+# --- 2. Sign In (登入 API) ---
+@app.put("/api/user/auth")
+async def sign_in(user: UserSignIn): # 改用 Pydantic Model 接收
+    # 1. 從資料庫撈出該 Email 的使用者資料
+    # 記得加上 crud. 呼叫
+    db_user = crud.get_user_by_email(user.email)
+    if not db_user:
+        raise HTTPException(status_code=400, detail="登入失敗，帳號或密碼錯誤")
+
+    # 2. 驗證密碼是否正確
+    # 記得加上 security. 呼叫，而且 db_user 現在是一個字典 (dict)
+    if not security.verify_password(user.password, db_user["password"]):
+        raise HTTPException(status_code=400, detail="登入失敗，帳號或密碼錯誤")
+
+    # 3. 準備打包成 JWT 的資料 (Payload)
+    # 取值要用字典的方式 db_user["欄位名"]
+    payload = {"id": db_user["id"], "name": db_user["name"], "email": db_user["email"]}
+    
+    # 4. 簽發 JWT Token
+    # 記得加上 security. 呼叫
+    token = security.create_access_token(data=payload)
+
+    # 5. 回傳 Token 給前端
+    return {"token": token} 
+
+# --- 3. 取得目前登入狀態 API ---
+@app.get("/api/user/auth")
+async def get_user_info(authorization: str = Header(None)):
+    # 1. 檢查有沒有帶 Authorization Header
+    if not authorization or not authorization.startswith("Bearer "):
+         return {"data": None} 
+
+    # 2. 取出 Token 並解碼
+    token = authorization.split(" ")[1]
+    # 記得加上 security. 呼叫
+    payload = security.decode_access_token(token)
+    
+    # 3. 如果解碼失敗 (過期或被竄改)，回傳未登入狀態
+    if not payload:
+        return {"data": None}
+    
+    # 4. 為了安全性，通常回傳時會過濾掉敏感資訊，或者直接回傳需要的欄位
+    # 由於我們在 payload 裡沒有放密碼，可以直接回傳
+    return {"data": payload}
 
 # ==========================================
 # Task 1-2: 取得景點資料列表

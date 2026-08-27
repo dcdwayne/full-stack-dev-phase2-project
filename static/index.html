@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>台北一日遊</title>
-
+    <link rel="stylesheet" type="text/css" href="/static/css/auth.css"/>
     <link rel="stylesheet" type = "text/css" href="/static/css/index.css"/>
 
 </head>
@@ -14,10 +14,10 @@
     <header class="navbar">
         <div class="container">
             <a href="/" class="logo">台北一日遊</a>
-            <ul class="nav-links">
-                <li>預定行程</li>
-                <li>登入/註冊</li>
-            </ul>
+                <ul class="nav-links">
+                    <li>預定行程</li>
+                    <li id="nav-auth-btn" style="cursor:pointer;">登入/註冊</li>
+                </ul>
         </div>
     </header>
 
@@ -298,6 +298,7 @@
         // 初始載入第一頁的資料 (不帶條件)
         fetchAttractions(0, true);
     </script>
+    <script src="/static/js/auth.js"></script>
 
 </body>
 </html>

@@ -1,0 +1,130 @@
+/* ==========================================
+   會員登入/註冊 彈出視窗樣式 (auth.css)
+========================================== */
+
+/* 1. 半透明黑色遮罩 (覆蓋全螢幕) */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.25); /* 半透明黑底 */
+    z-index: 1000; /* 確保在最上層 */
+    
+    /* 預設為 flex，搭配 JS 的 display 切換 */
+    display: flex; 
+    justify-content: center;
+    align-items: flex-start;
+    padding-top: 80px;
+}
+
+/* 2. 彈出視窗主體 */
+.dialog-box {
+    background-color: #ffffff;
+    width: 340px;
+    max-width: 90%; /* 避免手機螢幕太小破版 */
+    border-radius: 6px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    overflow: hidden; /* 讓上方的飾條可以貼合圓角 */
+}
+
+/* 3. 頂部飾條 (藍綠色) */
+.dialog-header-bar {
+    height: 10px;
+    background-color: #448899;
+    width: 100%;
+}
+
+/* 4. 視窗內容區塊 padding */
+.dialog-content {
+    padding: 25px 20px;
+}
+
+/* 5. 標題與關閉按鈕區塊 */
+.dialog-title {
+    position: relative;
+    text-align: center;
+    margin-bottom: 25px;
+}
+
+.dialog-title h3 {
+    margin: 0;
+    font-size: 24px;
+    color: #666666;
+    font-weight: bold;
+}
+
+.close-btn {
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    font-size: 28px;
+    color: #666666;
+    cursor: pointer;
+    line-height: 1;
+}
+
+/* 6. 表單輸入框 */
+#signin-form input,
+#signup-form input {
+    width: 100%;
+    box-sizing: border-box; /* 確保 padding 不會撐破 100% 寬度 */
+    padding: 15px;
+    margin-bottom: 15px;
+    border: 1px solid #cccccc;
+    border-radius: 5px;
+    font-size: 16px;
+    color: #000000;
+}
+
+#signin-form input::placeholder,
+#signup-form input::placeholder {
+    color: #757575;
+}
+
+/* 7. 送出按鈕 */
+.submit-btn {
+    width: 100%;
+    padding: 15px;
+    background-color: #448899;
+    color: #ffffff;
+    border: none;
+    border-radius: 5px;
+    font-size: 18px;
+    cursor: pointer;
+    margin-bottom: 10px;
+    transition: background-color 0.2s;
+}
+
+.submit-btn:hover {
+    background-color: #3b7685; /* 滑鼠移過去稍微變深 */
+}
+
+/* 8. 訊息提示區 (成功/錯誤訊息) */
+.message-box {
+    text-align: center;
+    font-weight: normal;
+    font-size: 16px;
+    margin-bottom: 15px;
+}
+
+/* 👇 新增這一段：當區塊內沒有任何內容時，完全不佔空間 */
+.message-box:empty {
+    display: none;
+}
+
+/* 9. 底部切換文字 */
+.switch-link {
+    text-align: center;
+    color: #666666;
+    font-size: 16px;
+    margin: 0;
+}
+
+.switch-link span {
+    cursor: pointer;
+}

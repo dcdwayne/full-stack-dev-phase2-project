@@ -10,6 +10,7 @@ import mysql.connector
 import os
 from dotenv import load_dotenv
 from pydantic import BaseModel
+from datetime import date
 # 導入寫好的模組
 import crud
 import security
@@ -46,6 +47,34 @@ class UserSignUp(BaseModel):
 class UserSignIn(BaseModel):
     email: str
     password: str
+
+class BookingData(BaseModel):
+    attractionId: int
+    date: str       # 例如 "2022-01-31"
+    time: str       # 例如 "morning" 或 "afternoon"
+    price: int
+
+def get_db_connection():
+    """建立資料庫連線的輔助函式"""
+    return mysql.connector.connect(
+        user=os.getenv("DB_USER"),
+        password=os.getenv("DB_PASSWORD"),
+        host=os.getenv("DB_HOST"),
+        database=os.getenv("DB_NAME")
+    )
+
+def verify_token_and_get_user(authorization: str):
+    """驗證 Token 並回傳使用者 ID 的輔助函式"""
+    if not authorization or not authorization.startswith("Bearer "):
+        raise HTTPException(status_code=403, detail="未登入系統，拒絕存取")
+    
+    token = authorization.split(" ")[1]
+    payload = security.decode_access_token(token)
+    
+    if not payload or "id" not in payload:
+        raise HTTPException(status_code=403, detail="未登入系統，拒絕存取")
+    
+    return payload["id"]
 
 # --- 1. Sign Up (註冊 API) ---
 @app.post("/api/user")
@@ -363,6 +392,161 @@ async def get_mrts():
             status_code=500,
             content={"error": True, "message": "伺服器內部錯誤"}
         )
+    finally:
+        if 'cursor' in locals() and cursor is not None:
+            cursor.close()
+        if 'con' in locals() and con.is_connected():
+            con.close()
+
+# ==========================================
+# Task 5-1: Booking APIs
+# ==========================================
+# --- 1. POST /api/booking (建立新的預定行程) ---
+@app.post("/api/booking", summary="建立新的預定行程", tags=["Booking"])
+async def create_booking(
+    booking_data: BookingData,
+    authorization: str = Header(None)
+):
+    try:
+        # 1. 驗證登入狀態並取得 user_id
+        user_id = verify_token_and_get_user(authorization)
+
+        con = get_db_connection()
+        cursor = con.cursor()
+
+        # 2. 檢查景點是否存在 (非必須，但確保資料正確性較好)
+        cursor.execute("SELECT id FROM attraction WHERE id = %s", (booking_data.attractionId,))
+        if not cursor.fetchone():
+            return JSONResponse(status_code=400, content={"error": True, "message": "建立失敗，景點編號不正確"})
+
+        # 3. 處理「單一預定限制」：利用 MySQL 的 INSERT ... ON DUPLICATE KEY UPDATE
+        # 這樣如果 user_id 已經存在，就會自動變成更新 (取代) 的行為
+        sql = """
+            INSERT INTO booking (user_id, attraction_id, date, time, price) 
+            VALUES (%s, %s, %s, %s, %s)
+            ON DUPLICATE KEY UPDATE 
+            attraction_id = VALUES(attraction_id),
+            date = VALUES(date),
+            time = VALUES(time),
+            price = VALUES(price)
+        """
+        val = (
+            user_id, 
+            booking_data.attractionId, 
+            booking_data.date, 
+            booking_data.time, 
+            booking_data.price
+        )
+        
+        cursor.execute(sql, val)
+        con.commit()
+
+        return {"ok": True}
+
+    except HTTPException as e:
+        # 捕捉未登入的 403 錯誤並轉換成 API 規範的 JSON 格式
+        return JSONResponse(status_code=403, content={"error": True, "message": "未登入系統，拒絕存取"})
+    except Exception as e:
+        print(f"Error in POST /api/booking: {e}")
+        return JSONResponse(status_code=500, content={"error": True, "message": "伺服器內部錯誤"})
+    finally:
+        if 'cursor' in locals() and cursor is not None:
+            cursor.close()
+        if 'con' in locals() and con.is_connected():
+            con.close()
+
+
+# --- 2. GET /api/booking (取得尚未確認下單的預定行程) ---
+@app.get("/api/booking", summary="取得尚未確認下單的預定行程", tags=["Booking"])
+async def get_booking(authorization: str = Header(None)):
+    try:
+        # 1. 驗證登入狀態並取得 user_id
+        user_id = verify_token_and_get_user(authorization)
+
+        con = get_db_connection()
+        cursor = con.cursor(dictionary=True)
+
+        # 2. 聯表查詢 (JOIN)：我們需要 booking 資料加上 attraction 的詳細資料
+        sql = """
+            SELECT 
+                b.attraction_id, 
+                b.date, 
+                b.time, 
+                b.price,
+                a.name as attraction_name, 
+                a.address as attraction_address,
+                (SELECT image_url FROM attraction_image WHERE attraction_id = b.attraction_id LIMIT 1) as attraction_image
+            FROM booking b
+            JOIN attraction a ON b.attraction_id = a.id
+            WHERE b.user_id = %s
+        """
+        cursor.execute(sql, (user_id,))
+        booking_record = cursor.fetchone()
+
+        # 3. 若沒有預定紀錄，回傳 {"data": null}
+        if not booking_record:
+            return {"data": None}
+
+        # 4. 處理圖片網址格式
+        img_url = booking_record["attraction_image"]
+        domain_prefix = "https://padax.github.io/taipei-day-trip-resources"
+        if img_url and img_url.startswith("/imgs"):
+            img_url = f"{domain_prefix}{img_url}"
+
+        # 5. 組合 API 文件要求的 JSON 結構
+        response_data = {
+            "data": {
+                "attraction": {
+                    "id": booking_record["attraction_id"],
+                    "name": booking_record["attraction_name"],
+                    "address": booking_record["attraction_address"],
+                    "image": img_url
+                },
+                "date": booking_record["date"].strftime('%Y-%m-%d') if isinstance(booking_record["date"], date) else booking_record["date"], # 確保日期格式
+                "time": booking_record["time"],
+                "price": booking_record["price"]
+            }
+        }
+        
+        # 備註：如果你撈出來的 date 已經是字串就不需要 strftime。
+        # 如果上方匯入遺漏了 date，請在檔案最上方加上 from datetime import date
+
+        return response_data
+
+    except HTTPException as e:
+        return JSONResponse(status_code=403, content={"error": True, "message": "未登入系統，拒絕存取"})
+    except Exception as e:
+        print(f"Error in GET /api/booking: {e}")
+        return JSONResponse(status_code=500, content={"error": True, "message": "伺服器內部錯誤"})
+    finally:
+        if 'cursor' in locals() and cursor is not None:
+            cursor.close()
+        if 'con' in locals() and con.is_connected():
+            con.close()
+
+
+# --- 3. DELETE /api/booking (刪除目前的預定行程) ---
+@app.delete("/api/booking", summary="刪除目前的預定行程", tags=["Booking"])
+async def delete_booking(authorization: str = Header(None)):
+    try:
+        # 1. 驗證登入狀態並取得 user_id
+        user_id = verify_token_and_get_user(authorization)
+
+        con = get_db_connection()
+        cursor = con.cursor()
+
+        # 2. 刪除該使用者的預定紀錄
+        sql = "DELETE FROM booking WHERE user_id = %s"
+        cursor.execute(sql, (user_id,))
+        con.commit()
+
+        return {"ok": True}
+
+    except HTTPException as e:
+        return JSONResponse(status_code=403, content={"error": True, "message": "未登入系統，拒絕存取"})
+    except Exception as e:
+        print(f"Error in DELETE /api/booking: {e}")
+        return JSONResponse(status_code=500, content={"error": True, "message": "伺服器內部錯誤"})
     finally:
         if 'cursor' in locals() and cursor is not None:
             cursor.close()

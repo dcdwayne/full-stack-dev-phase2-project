@@ -14,7 +14,7 @@
     <div class="nav-container">
       <a href="/" class="nav-logo">台北一日遊</a>
       <div class="nav-menu">
-        <a href="#" class="nav-item">預定行程</a>
+        <a href="#" class="nav-item" id="nav-booking-btn">預定行程</a>
         <a href="#" class="nav-item" id="nav-auth-btn">登入/註冊</a>
       </div>
     </div>
@@ -48,7 +48,7 @@
           <h3 class="booking-title">訂購導覽行程</h3>
           <p class="booking-subtitle">以此景點為中心的一日行程，帶您探索城市角落故事</p>
 
-          <form class="booking-form" id="booking-form" onsubmit="event.preventDefault();">
+          <form class="booking-form" id="booking-form">
             <div class="form-group">
               <label for="booking-date" class="form-label">選擇日期：</label>
               <input type="date" id="booking-date" class="form-input-date" required />

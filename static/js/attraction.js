@@ -138,3 +138,74 @@ nextBtn.addEventListener('click', () => {
   const newIndex = currentImgIndex === imagesList.length - 1 ? 0 : currentImgIndex + 1;
   changeImage(newIndex);
 });
+
+// ==========================================
+// Part 5-4: 建立新的預定行程 (開始預約行程按鈕)
+// ==========================================
+document.addEventListener("DOMContentLoaded", () => {
+    const bookingForm = document.getElementById("booking-form");
+    
+    if (bookingForm) {
+        bookingForm.addEventListener("submit", async (e) => {
+            e.preventDefault(); 
+            
+            const token = localStorage.getItem("token");
+            
+            // 1. 若沒有 Token，觸發右上角登入按鈕來開啟彈窗
+            if (!token) {
+                const authBtn = document.getElementById('nav-auth-btn');
+                if (authBtn) authBtn.click();
+                return;
+            }
+
+            // 2. 準備要送到後端的資料
+            const pathParts = window.location.pathname.split('/');
+            const attractionId = parseInt(pathParts[pathParts.length - 1]);
+            
+            const date = document.getElementById("booking-date").value;
+            const timeElement = document.querySelector('input[name="time"]:checked');
+            const time = timeElement ? timeElement.value : "morning";
+            const price = time === "morning" ? 2000 : 2500;
+
+            const bookingData = {
+                attractionId: attractionId,
+                date: date,
+                time: time,
+                price: price
+            };
+
+            // 3. 呼叫建立預定行程 API
+            try {
+                const response = await fetch("/api/booking", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${token}`
+                    },
+                    body: JSON.stringify(bookingData)
+                });
+                
+                // Token 過期或未登入防呆
+                if (response.status === 403) {
+                    localStorage.removeItem("token");
+                    const authBtn = document.getElementById('nav-auth-btn');
+                    if (authBtn) authBtn.click();
+                    return;
+                }
+
+                const result = await response.json();
+
+                // 4. 預定成功，導向購物籃頁面
+                if (result.ok) {
+                    window.location.href = "/booking";
+                } else {
+                    alert(result.message || "預約失敗，請稍後再試");
+                }
+
+            } catch (error) {
+                console.error("預約行程發生錯誤:", error);
+                alert("伺服器連線錯誤，請稍後再試");
+            }
+        });
+    }
+});

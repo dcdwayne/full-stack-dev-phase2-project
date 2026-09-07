@@ -1,0 +1,210 @@
+/* 全域與基礎設定 */
+body {
+    margin: 0;
+    font-family: 'Noto Sans TC', sans-serif;
+    color: #666666;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+/* 導覽列 */
+.navbar {
+  width: 100%;
+  height: 54px;
+  background: #ffffff;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  border-bottom: 1px solid #e8e8e8;
+  display: flex;
+  justify-content: center;
+}
+
+.nav-container {
+  width: 1200px;
+  max-width: 100%;
+  padding: 0 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.nav-logo {
+  font-size: 30px;
+  font-weight: 700;
+  color: #448899;
+  text-decoration: none;
+}
+
+.nav-menu {
+  display: flex;
+  gap: 20px;
+}
+
+.nav-item {
+  color: #666666;
+  text-decoration: none;
+  font-size: 16px;
+}
+
+.booking-main {
+    flex: 1; /* 讓內容區塊自動撐開，把 footer 擠到底部 */
+    padding-top: 40px;
+    padding-bottom: 40px;
+}
+.booking-container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 0 10px;
+}
+
+#greeting-title {
+    font-size: 19px;
+    font-weight: 700;
+    margin-bottom: 30px;
+}
+
+/* 預定行程區塊 */
+.tour-details {
+    display: flex;
+    gap: 30px;
+    margin-bottom: 40px;
+}
+.tour-details img {
+    width: 266px;
+    height: 200px;
+    object-fit: cover;
+}
+.tour-info {
+    position: relative; /* 為了讓垃圾桶絕對定位 */
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: 15px;
+}
+.tour-info h3 {
+    margin: 0;
+    color: #448899;
+    font-size: 16px;
+}
+.tour-info p {
+    margin: 0;
+    font-size: 16px;
+}
+.tour-info strong {
+    font-weight: 700;
+}
+
+/* 垃圾桶圖示修正 */
+#delete-btn.delete-icon {
+    position: absolute;
+    top: 0;
+    right: 0;
+    cursor: pointer;
+    width: 30px;
+    height: 30px;
+    object-fit: contain;
+    display: block;
+}
+
+/* 分隔線 */
+hr {
+    border: 0;
+    border-top: 1px solid #E8E8E8;
+    margin: 40px 0;
+}
+
+/* 表單區塊 */
+.form-section h3 {
+    font-size: 19px;
+    margin-bottom: 20px;
+}
+.form-group {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+}
+.form-group label {
+    width: 100px;
+    font-size: 16px;
+}
+.form-group input {
+    width: 200px;
+    padding: 10px;
+    border: 1px solid #E8E8E8;
+    border-radius: 5px;
+    font-size: 16px;
+}
+.notice-text {
+    font-size: 16px;
+    font-weight: 700;
+    margin-top: 20px;
+}
+
+/* 確認結帳區塊 */
+.confirm-section {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 20px;
+}
+.total-price {
+    font-size: 16px;
+    font-weight: 700;
+    margin: 0;
+}
+.submit-btn {
+    padding: 10px 20px;
+    background-color: #448899;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 19px;
+    cursor: pointer;
+}
+
+/* 空狀態 */
+.empty-state {
+    font-size: 16px;
+    color: #666666;
+}
+
+/* 頁尾 */
+.footer {
+    background-color: #757575;
+    color: white;
+    text-align: center;
+    padding: 40px 0;
+    font-weight: 700;
+}
+
+/* RWD 響應式設定 (手機版) */
+@media (max-width: 600px) {
+    .tour-details {
+        flex-direction: column;
+    }
+    .tour-details img {
+        width: 100%;
+        height: auto;
+        aspect-ratio: 4/3;
+    }
+    .tour-info {
+        gap: 10px;
+    }
+    .delete-icon {
+        /* 手機版垃圾桶改到右下角 */
+        top: auto;
+        bottom: 0; 
+    }
+    .form-group {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 5px;
+    }
+    .form-group input {
+        width: 100%;
+        box-sizing: border-box;
+    }
+}

@@ -180,3 +180,48 @@ document.addEventListener("DOMContentLoaded", () => {
     // 執行狀態檢查
     checkAuthStatus();
 });
+
+// ==========================================
+// Part 5-3: 導覽列「預定行程」按鈕邏輯
+// ==========================================
+document.addEventListener("DOMContentLoaded", () => {
+    const navBookingBtn = document.getElementById("nav-booking-btn");
+    
+    if (navBookingBtn) {
+        navBookingBtn.addEventListener("click", async (e) => {
+            e.preventDefault(); // 防止 <a> 標籤預設跳回頁面頂端
+            
+            const token = localStorage.getItem("token");
+            
+            // 1. 若沒有 Token，直接觸發「登入/註冊」按鈕的點擊事件來開啟彈窗
+            if (!token) {
+                const authBtn = document.getElementById('nav-auth-btn');
+                if (authBtn) authBtn.click();
+                return;
+            }
+
+            // 2. 有 Token，向後端驗證 Token 是否有效
+            try {
+                const response = await fetch("/api/user/auth", {
+                    method: "GET",
+                    headers: {
+                        "Authorization": `Bearer ${token}`
+                    }
+                });
+                const result = await response.json();
+
+                // 3. 驗證成功，跳轉至預訂頁面
+                if (result.data) {
+                    window.location.href = "/booking";
+                } else {
+                    // 驗證失敗，清除 Token 並打開登入彈窗
+                    localStorage.removeItem("token");
+                    const authBtn = document.getElementById('nav-auth-btn');
+                    if (authBtn) authBtn.click();
+                }
+            } catch (error) {
+                console.error("驗證登入狀態發生錯誤:", error);
+            }
+        });
+    }
+});

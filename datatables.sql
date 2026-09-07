@@ -24,3 +24,14 @@ CREATE TABLE users (
     password VARCHAR(255) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE TABLE booking (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT NOT NULL UNIQUE,
+    attraction_id BIGINT NOT NULL,
+    date DATE NOT NULL,
+    time VARCHAR(20) NOT NULL,
+    price INT NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users(id),
+    FOREIGN KEY (attraction_id) REFERENCES attraction(id)
+);

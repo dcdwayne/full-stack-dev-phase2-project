@@ -65,3 +65,73 @@ def create_user(name: str, email: str, hashed_password: str) -> bool:
         if conn and conn.is_connected():
             cursor.close()
             conn.close()
+
+def create_order(order_data: dict) -> bool:
+    """在資料庫建立新訂單"""
+    conn = get_db_connection()
+    if conn is None:
+        return False
+        
+    try:
+        cursor = conn.cursor()
+        query = """
+            INSERT INTO orders (
+                order_number, user_id, attraction_id, date, time, price, 
+                contact_name, contact_email, contact_phone, status
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, 'UNPAID')
+        """
+        val = (
+            order_data['order_number'], order_data['user_id'], order_data['attraction_id'],
+            order_data['date'], order_data['time'], order_data['price'],
+            order_data['contact_name'], order_data['contact_email'], order_data['contact_phone']
+        )
+        cursor.execute(query, val)
+        conn.commit()
+        return True
+    except Error as e:
+        print(f"建立訂單失敗: {e}")
+        return False
+    finally:
+        if conn and conn.is_connected():
+            cursor.close()
+            conn.close()
+
+def update_order_status(order_number: str, status: str):
+    """更新訂單狀態 (PAID / UNPAID)"""
+    conn = get_db_connection()
+    if conn is None:
+        return False
+    
+    try:
+        cursor = conn.cursor()
+        query = "UPDATE orders SET status = %s WHERE order_number = %s"
+        cursor.execute(query, (status, order_number))
+        conn.commit()
+        return True
+    except Error as e:
+        print(f"更新訂單狀態失敗: {e}")
+        return False
+    finally:
+        if conn and conn.is_connected():
+            cursor.close()
+            conn.close()
+
+def create_payment_record(order_number: str, rec_trade_id: str, status: int, msg: str):
+    """儲存 TapPay 的付款結果紀錄"""
+    conn = get_db_connection()
+    if conn is None:
+        return False
+    
+    try:
+        cursor = conn.cursor()
+        query = "INSERT INTO payments (order_number, rec_trade_id, status, msg) VALUES (%s, %s, %s, %s)"
+        cursor.execute(query, (order_number, rec_trade_id, status, msg))
+        conn.commit()
+        return True
+    except Error as e:
+        print(f"儲存付款紀錄失敗: {e}")
+        return False
+    finally:
+        if conn and conn.is_connected():
+            cursor.close()
+            conn.close()

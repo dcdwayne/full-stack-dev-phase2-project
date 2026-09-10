@@ -11,6 +11,10 @@ import os
 from dotenv import load_dotenv
 from pydantic import BaseModel
 from datetime import date
+import httpx
+import uuid
+import datetime
+
 # 導入寫好的模組
 import crud
 import security
@@ -53,6 +57,12 @@ class BookingData(BaseModel):
     date: str       # 例如 "2022-01-31"
     time: str       # 例如 "morning" 或 "afternoon"
     price: int
+
+# 定義接收付款資料的 Model
+class PaymentData(BaseModel):
+    prime: str
+    order: dict
+    contact: dict
 
 def get_db_connection():
     """建立資料庫連線的輔助函式"""
@@ -139,6 +149,109 @@ async def get_user_info(authorization: str = Header(None)):
     # 4. 為了安全性，通常回傳時會過濾掉敏感資訊，或者直接回傳需要的欄位
     # 由於我們在 payload 裡沒有放密碼，可以直接回傳
     return {"data": payload}
+
+# --- 4. POST /api/orders (結帳與發起金流) ---
+@app.post("/api/orders", summary="建立訂單並向 TapPay 發起付款", tags=["Order"])
+async def create_order_and_pay(
+    payment_data: PaymentData,
+    authorization: str = Header(None)
+):
+    try:
+        # 1. 驗證登入狀態
+        user_id = verify_token_and_get_user(authorization)
+
+        # 2. 生成唯一的訂單編號 (格式：YYYYMMDDHHMMSS + 隨機碼)
+        now = datetime.datetime.now()
+        order_number = f"{now.strftime('%Y%m%d%H%M%S')}{str(uuid.uuid4().int)[:6]}"
+
+        # 3. 將訂單資料存入資料庫，狀態預設為 UNPAID
+        order_db_data = {
+            "order_number": order_number,
+            "user_id": user_id,
+            "attraction_id": payment_data.order["trip"]["attraction"]["id"],
+            "date": payment_data.order["trip"]["date"],
+            "time": payment_data.order["trip"]["time"],
+            "price": payment_data.order["price"],
+            "contact_name": payment_data.contact["name"],
+            "contact_email": payment_data.contact["email"],
+            "contact_phone": payment_data.contact["phone"]
+        }
+        
+        if not crud.create_order(order_db_data):
+            return JSONResponse(status_code=500, content={"error": True, "message": "訂單建立失敗"})
+
+        # 4. 準備打給 TapPay 的 Pay by Prime API 的 Request Body
+        tappay_partner_key = os.getenv("TAPPAY_PARTNER_KEY") # 記得加進 .env
+        tappay_merchant_id = os.getenv("TAPPAY_MERCHANT_ID") # 記得加進 .env
+        
+        tappay_request_data = {
+            "prime": payment_data.prime,
+            "partner_key": tappay_partner_key,
+            "merchant_id": tappay_merchant_id,
+            "details": "台北一日遊行程預定",
+            "amount": payment_data.order["price"],
+            "cardholder": {
+                "phone_number": payment_data.contact["phone"],
+                "name": payment_data.contact["name"],
+                "email": payment_data.contact["email"]
+            },
+            "remember": False
+        }
+        
+        tappay_headers = {
+            "Content-Type": "application/json",
+            "x-api-key": tappay_partner_key
+        }
+
+        # 5. 向 TapPay 發起 Server-to-Server 扣款請求
+        # 測試環境 URL
+        tappay_api_url = "https://sandbox.tappaysdk.com/tpc/payment/pay-by-prime" 
+        
+        async with httpx.AsyncClient() as client:
+            response = await client.post(tappay_api_url, json=tappay_request_data, headers=tappay_headers, timeout=30.0)
+            tappay_result = response.json()
+
+        # 6. 解析 TapPay 回傳結果並更新資料庫
+        tap_status = tappay_result.get("status")
+        tap_msg = tappay_result.get("msg", "Unknown error")
+        rec_trade_id = tappay_result.get("rec_trade_id", "")
+
+        # 儲存付款紀錄
+        crud.create_payment_record(order_number, rec_trade_id, tap_status, tap_msg)
+
+        if tap_status == 0:
+            # 付款成功
+            crud.update_order_status(order_number, "PAID")
+            
+            # (選用) 成功付款後，將購物車 (booking 表) 中的資料刪除
+            crud.delete_booking_by_user(user_id) 
+            
+            return {
+                "data": {
+                    "number": order_number,
+                    "payment": {
+                        "status": 0,
+                        "message": "付款成功"
+                    }
+                }
+            }
+        else:
+            # 付款失敗
+            return {
+                "data": {
+                    "number": order_number,
+                    "payment": {
+                        "status": tap_status,
+                        "message": f"付款失敗: {tap_msg}"
+                    }
+                }
+            }
+
+    except HTTPException as e:
+        return JSONResponse(status_code=403, content={"error": True, "message": "未登入系統，拒絕存取"})
+    except Exception as e:
+        print(f"Error in POST /api/orders: {e}")
+        return JSONResponse(status_code=500, content={"error": True, "message": "伺服器內部錯誤"})
 
 # ==========================================
 # Task 1-2: 取得景點資料列表

@@ -3,9 +3,39 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Thank You</title>
+  <title>訂購完成 - 台北一日遊</title>
+  <link rel="stylesheet" type="text/css" href="/static/css/auth.css"/>
+  <link rel="stylesheet" type="text/css" href="/static/css/thankyou.css">
 </head>
 <body>
-  
+    <!-- 導覽列 -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="/" class="nav-logo">台北一日遊</a>
+            <div class="nav-menu">
+                <div class="nav-item" id="nav-booking-btn">預定行程</div>
+                <div class="nav-item" id="nav-auth-btn">登入/註冊</div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主要內容區塊 -->
+    <main class="thankyou-container">
+        <h2>行程預定成功</h2>
+        <p>您的訂單編號如下</p>
+        
+        <!-- 預留給 JS 渲染訂單編號的容器 -->
+        <div id="order-number" class="order-number">載入中...</div>
+        
+        <p class="reminder">請記住此編號，或到會員中心查詢歷史訂單</p>
+    </main>
+
+    <!-- 頁尾 (需與其他頁面保持相同) -->
+    <footer class="footer">
+        COPYRIGHT © 2021 台北一日遊
+    </footer>
+    
+    <script src="/static/js/auth.js"></script>
+    <script src="/static/js/thankyou.js"></script>
 </body>
 </html>

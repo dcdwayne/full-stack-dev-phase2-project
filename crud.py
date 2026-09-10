@@ -135,3 +135,29 @@ def create_payment_record(order_number: str, rec_trade_id: str, status: int, msg
         if conn and conn.is_connected():
             cursor.close()
             conn.close()
+
+def delete_booking_by_user(user_id: int):
+    """付款成功後，清空該使用者的購物車 (booking 表)"""
+    try:
+        con = mysql.connector.connect(
+            user=os.getenv("DB_USER"),
+            password=os.getenv("DB_PASSWORD"),
+            host=os.getenv("DB_HOST"),
+            database=os.getenv("DB_NAME")
+        )
+        cursor = con.cursor()
+        
+        # 刪除該名使用者的預定紀錄
+        sql = "DELETE FROM booking WHERE user_id = %s"
+        cursor.execute(sql, (user_id,))
+        con.commit()
+        
+        return True
+    except Exception as e:
+        print(f"Error in delete_booking_by_user: {e}")
+        return False
+    finally:
+        if 'cursor' in locals() and cursor is not None:
+            cursor.close()
+        if 'con' in locals() and con.is_connected():
+            con.close()

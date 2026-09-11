@@ -67,20 +67,20 @@
 
                 <hr>
 
-                <!-- 信用卡資訊 (純 UI) -->
+                <!-- 信用卡資訊 (TapPay Fields 替換後) -->
                 <section class="form-section">
                     <h3>信用卡付款資訊</h3>
                     <div class="form-group">
                         <label>卡片號碼：</label>
-                        <input type="text" placeholder="**** **** **** ****">
+                        <div class="tpfield" id="card-number"></div>
                     </div>
                     <div class="form-group">
                         <label>過期時間：</label>
-                        <input type="text" placeholder="MM / YY">
+                        <div class="tpfield" id="card-expiration-date"></div>
                     </div>
                     <div class="form-group">
                         <label>驗證密碼：</label>
-                        <input type="text" placeholder="CVV">
+                        <div class="tpfield" id="card-ccv"></div>
                     </div>
                 </section>
 
@@ -89,7 +89,7 @@
                 <!-- 確認區塊 -->
                 <section class="confirm-section">
                     <p class="total-price">總價：新台幣 <span id="confirm-price"></span> 元</p>
-                    <button class="submit-btn">確認訂購並付款</button>
+                    <button id="submit-button" class="submit-btn">確認訂購並付款</button>
                 </section>
             </div>
         </div>
@@ -99,7 +99,11 @@
         <p>COPYRIGHT © 2021 台北一日遊</p>
     </footer>
 
+
+    <!-- 載入 TapPay SDK -->
+    <script src="https://js.tappaysdk.com/sdk/tpdirect/v5.14.0"></script>
     <script src="/static/js/auth.js"></script>
     <script src="/static/js/booking.js"></script>
+
 </body>
 </html>

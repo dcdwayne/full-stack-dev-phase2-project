@@ -171,6 +171,16 @@ hr {
     color: #666666;
 }
 
+.tpfield {
+    width: 200px;
+    height: 40px; /* 加上高度，配合 box-sizing */
+    border: 1px solid #E8E8E8;
+    border-radius: 5px;
+    padding: 10px;
+    box-sizing: border-box; /* 確保 padding 不會撐大寬度 */
+    margin: 0; /* 移除原本預設的 margin */
+}
+
 /* 頁尾 */
 .footer {
     background-color: #757575;

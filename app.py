@@ -14,6 +14,7 @@ from datetime import date
 import httpx
 import uuid
 import datetime
+import secrets
 
 # 導入寫好的模組
 import crud
@@ -41,6 +42,10 @@ async def booking(request: Request):
 @app.get("/thankyou", include_in_schema=False)
 async def thankyou(request: Request):
 	return FileResponse("./static/thankyou.html", media_type="text/html")
+
+@app.get("/member", include_in_schema=False)
+async def member(request: Request):
+	return FileResponse("./static/member.html", media_type="text/html")
 
 # 定義 Pydantic Models 用於接收前端資料
 class UserSignUp(BaseModel):
@@ -130,7 +135,7 @@ async def sign_in(user: UserSignIn): # 改用 Pydantic Model 接收
     # 5. 回傳 Token 給前端
     return {"token": token} 
 
-# --- 3. 取得目前登入狀態 API ---
+# --- 3. 取得目前登入狀態 API (已更新：支援回傳 mcp_token)---
 @app.get("/api/user/auth")
 async def get_user_info(authorization: str = Header(None)):
     # 1. 檢查有沒有帶 Authorization Header
@@ -146,9 +151,35 @@ async def get_user_info(authorization: str = Header(None)):
     if not payload:
         return {"data": None}
     
+    try:
+        # 連線資料庫，撈出使用者的 mcp_token
+        con = get_db_connection()
+        cursor = con.cursor(dictionary=True)
+        # 再次確認你的資料表名稱是 users 
+        cursor.execute("SELECT mcp_token FROM users WHERE id = %s", (payload["id"],))
+        db_user = cursor.fetchone()
+        
+        # 把資料庫裡的 mcp_token 塞進要回傳的 payload 裡
+        if db_user and db_user["mcp_token"]:
+            payload["mcp_token"] = db_user["mcp_token"]
+        else:
+            payload["mcp_token"] = None
+            
+        return {"data": payload}
+        
+    except Exception as e:
+        print(f"Error in GET /api/user/auth: {e}")
+        return {"data": None}
+    
+    finally:
+        if 'cursor' in locals() and cursor is not None:
+            cursor.close()
+        if 'con' in locals() and con.is_connected():
+            con.close()
+
     # 4. 為了安全性，通常回傳時會過濾掉敏感資訊，或者直接回傳需要的欄位
     # 由於我們在 payload 裡沒有放密碼，可以直接回傳
-    return {"data": payload}
+    # return {"data": payload}
 
 # --- 4. POST /api/orders (結帳與發起金流) ---
 @app.post("/api/orders", summary="建立訂單並向 TapPay 發起付款", tags=["Order"])
@@ -666,6 +697,44 @@ async def delete_booking(authorization: str = Header(None)):
         if 'con' in locals() and con.is_connected():
             con.close()
 
+# --- 新增：產生/更新 MCP 金鑰 API ---
+@app.put("/api/mcp/token", summary="產生或更新會員的 MCP 金鑰", tags=["User"])
+async def generate_mcp_token(authorization: str = Header(None)):
+    try:
+        # 1. 驗證登入狀態並取得 user_id
+        # 我們直接借用你已經寫好的 verify_token_and_get_user 輔助函式
+        user_id = verify_token_and_get_user(authorization)
+
+        # 2. 產生一組長度為 64 個字元 (32 bytes 轉 hex) 的安全隨機字串
+        new_mcp_token = secrets.token_hex(32)
+
+        # 3. 準備將 Token 寫入資料庫
+        con = get_db_connection()
+        cursor = con.cursor()
+
+        # 這裡假設你的使用者資料表名稱叫做 `users`。
+        # 根據你前面的 crud 寫法，猜測表名是 users。若不是，請自行修改。
+        # 你需要在資料庫的 users (或 member) 資料表中，新增一個名為 mcp_token (VARCHAR) 的欄位！
+        sql = "UPDATE users SET mcp_token = %s WHERE id = %s"
+        cursor.execute(sql, (new_mcp_token, user_id))
+        con.commit()
+
+        # 4. 回傳給前端
+        return {"token": new_mcp_token}
+
+    except HTTPException as e:
+        # 攔截 verify_token_and_get_user 拋出的 403 錯誤
+        return JSONResponse(status_code=403, content={"error": True, "message": "未登入系統，拒絕存取"})
+    except Exception as e:
+        print(f"Error in PUT /api/mcp/token: {e}")
+        return JSONResponse(status_code=500, content={"error": True, "message": "伺服器內部錯誤"})
+    finally:
+        if 'cursor' in locals() and cursor is not None:
+            cursor.close()
+        if 'con' in locals() and con.is_connected():
+            con.close()
+
+
 # ==========================================
 # 網站圖示 (Favicon)
 # ==========================================
@@ -673,3 +742,15 @@ async def delete_booking(authorization: str = Header(None)):
 async def favicon():
     # 直接回傳 static 資料夾裡面的圖片
     return FileResponse("static/img/favicon.ico")
+
+from mcp_server import mcp # 匯入寫好的 mcp 實例 
+
+# 將 FastMCP 掛載到 FastAPI，路徑設定為 /mcp
+# 這樣 Codex 就能透過 http://127.0.0.1:8000/mcp/ 找到你的工具了
+# 根據你安裝的 mcp 版本，動態選擇正確的掛載方法
+if hasattr(mcp, "get_asgi_app"):
+    app.mount("/mcp", mcp.get_asgi_app())
+elif hasattr(mcp, "streamable_http_app"):
+    app.mount("/mcp", mcp.streamable_http_app())
+else:
+    app.mount("/mcp", mcp.http_app(path="/mcp"))

@@ -64,3 +64,6 @@ CREATE TABLE payments (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (order_number) REFERENCES orders(order_number)
 );
+
+-- 假設你的表名叫做 users，請根據實際情況修改
+ALTER TABLE users ADD COLUMN mcp_token VARCHAR(255) NULL;

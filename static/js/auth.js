@@ -161,13 +161,17 @@ document.addEventListener("DOMContentLoaded", () => {
             });
             const result = await response.json();
 
+            // 若使用者已登入
             if (result.data !== null) {
-                navAuthBtn.textContent = '登出系統';
+                // 將文字改為「會員中心」
+                navAuthBtn.textContent = '會員中心'; 
+                
+                // 點擊後跳轉至會員中心頁面
                 navAuthBtn.addEventListener('click', () => {
-                    localStorage.removeItem('token');
-                    window.location.reload();
+                    window.location.href = '/member'; 
                 });
             } else {
+                // 若未登入，維持原本的「登入/註冊」與開啟彈窗邏輯
                 navAuthBtn.textContent = '登入/註冊';
                 navAuthBtn.addEventListener('click', openModal);
             }

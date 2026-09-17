@@ -19,12 +19,16 @@ import secrets
 # 導入寫好的模組
 import crud
 import security
-
+from mcp_server import mcp
 
 # 強制載入 .env 檔案中的變數到目前的環境中
 load_dotenv(override=True)
 
-app=FastAPI()
+mcp_app = mcp.http_app(path="/")
+app = FastAPI(lifespan=mcp_app.lifespan)
+
+# 將 FastMCP 掛載到 FastAPI，路徑設定為 /mcp
+app.mount("/mcp", mcp_app)
 
 # 告訴 FastAPI，所有對 /static 開頭的請求，都去 "static" 這個資料夾裡面找檔案
 app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -742,15 +746,3 @@ async def generate_mcp_token(authorization: str = Header(None)):
 async def favicon():
     # 直接回傳 static 資料夾裡面的圖片
     return FileResponse("static/img/favicon.ico")
-
-from mcp_server import mcp # 匯入寫好的 mcp 實例 
-
-# 將 FastMCP 掛載到 FastAPI，路徑設定為 /mcp
-# 這樣 Codex 就能透過 http://127.0.0.1:8000/mcp/ 找到你的工具了
-# 根據你安裝的 mcp 版本，動態選擇正確的掛載方法
-if hasattr(mcp, "get_asgi_app"):
-    app.mount("/mcp", mcp.get_asgi_app())
-elif hasattr(mcp, "streamable_http_app"):
-    app.mount("/mcp", mcp.streamable_http_app())
-else:
-    app.mount("/mcp", mcp.http_app(path="/mcp"))

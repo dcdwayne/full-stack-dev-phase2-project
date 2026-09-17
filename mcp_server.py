@@ -66,10 +66,15 @@ def add_to_cart(attraction_id: int, date: str, time: str, price: int, ctx: Conte
     預定景點導覽行程：根據景點編號、日期、時間、價格，預定一個景點導覽行程
     """
     try:
-        # 1. 從 FastMCP Context 的 request headers 中抓取 Authorization
+        # 1. 從 HTTP request headers 中抓取 Authorization
         auth_header = None
-        if ctx.request and ctx.request.headers:
-            auth_header = ctx.request.headers.get("authorization")
+        try:
+            from fastmcp.server.dependencies import get_http_request
+            req = get_http_request()
+            if req and req.headers:
+                auth_header = req.headers.get("authorization")
+        except Exception:
+            auth_header = None
 
         if not auth_header or not auth_header.startswith("Bearer "):
             return {"error": True}

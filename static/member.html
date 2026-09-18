@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>台北一日遊 - 會員中心</title>
+    <link rel="stylesheet" type="text/css" href="/static/css/member.css"> 
+</head>
+<body>
+    <!-- 導覽列 -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="/" class="nav-logo">台北一日遊</a>
+            <div class="nav-menu">
+                <div class="nav-item" id="nav-booking-btn">預定行程</div>
+                <div class="nav-item" id="nav-auth-btn">登入/註冊</div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主要內容區塊 -->
+    <main class="main-container">
+        <!-- 歡迎訊息 -->
+        <div class="greeting">
+            您好，<span id="member-name"></span>：
+        </div>
+        
+        <hr class="divider">
+
+        <!-- MCP 設定區塊 -->
+        <section class="mcp-section">
+            <h2 class="section-title">AI 工具整合</h2>
+            <p class="section-subtitle">MCP 伺服器設定：</p>
+            
+            <ul class="mcp-list">
+                <li>
+                    <span class="list-title">Host URL</span>
+                    <span class="list-value" id="mcp-host-url">載入中...</span>
+                </li>
+                <li>
+                    <span class="list-title">Bearer Token</span>
+                    <span class="list-value token-text" id="mcp-token">尚未產生金鑰</span>
+                </li>
+            </ul>
+
+            <button id="generate-token-btn" class="btn btn-primary">產生 / 更新金鑰</button>
+        </section>
+
+        <hr class="divider">
+
+        <!-- 登出按鈕 -->
+        <button id="logout-btn" class="btn btn-secondary">登出會員</button>
+    </main>
+
+    <!-- 頁尾 -->
+    <footer class="footer">
+        <p>COPYRIGHT © 2026 台北一日遊</p>
+    </footer>
+    
+    <script src="/static/js/auth.js"></script>
+    <script src="/static/js/member.js"></script>
+</body>
+</html>

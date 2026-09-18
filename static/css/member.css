@@ -1,0 +1,152 @@
+/* 全域設定 */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: "Noto Sans TC", sans-serif;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    color: #666666;
+}
+
+/* 導覽列 */
+.navbar {
+  width: 100%;
+  height: 54px;
+  background: #ffffff;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  border-bottom: 1px solid #e8e8e8;
+  display: flex;
+  justify-content: center;
+}
+
+.nav-container {
+  width: 1200px;
+  max-width: 100%;
+  padding: 0 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.nav-logo {
+  font-size: 30px;
+  font-weight: 700;
+  color: #448899;
+  text-decoration: none;
+}
+
+.nav-menu {
+  display: flex;
+  gap: 20px;
+}
+
+.nav-item {
+  color: #666666;
+  text-decoration: none;
+  font-size: 16px;
+}
+
+/* 主要內容容器 */
+.main-container {
+    max-width: 1000px;
+    margin: 40px auto;
+    padding: 0 20px;
+    flex-grow: 1; /* 讓 footer 推到底部 */
+    width: 100%;
+}
+
+.greeting {
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 30px;
+    color: #666666;
+}
+
+.divider {
+    border: none;
+    border-top: 1px solid #e8e8e8;
+    margin: 30px 0;
+}
+
+/* MCP 區塊 */
+.mcp-section {
+    margin-bottom: 30px;
+}
+
+.section-title {
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 15px;
+}
+
+.section-subtitle {
+    font-size: 16px;
+    margin-bottom: 15px;
+}
+
+.mcp-list {
+    list-style-position: outside; /* 讓黑點在外側，對齊更標準 */
+    margin-bottom: 25px;
+    padding-left: 25px; /* 留出黑點的空間 */
+}
+
+.mcp-list li {
+    margin-bottom: 20px;
+}
+
+.list-title {
+    display: inline; /* 保持與黑點在同一行 */
+    font-size: 16px;
+    color: #666666;
+}
+
+.list-value {
+    display: block; /* 強制換行到下一行 */
+    margin-top: 10px; /* 與標題拉開一點距離 */
+    margin-left: 15px; /* 做出與上方標題的縮排視覺效果 */
+    color: #666666;
+}
+
+.token-text {
+    word-break: break-all; /* 防止 Token 過長撐破版面 */
+}
+
+/* 按鈕樣式 */
+.btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.btn-primary {
+    background-color: #448899;
+    color: #ffffff;
+}
+
+.btn-primary:hover {
+    background-color: #3b7786;
+}
+
+.btn-secondary {
+    background-color: #448899;
+    color: #ffffff;
+}
+
+/* 頁尾 */
+.footer {
+    background-color: #757575;
+    color: #ffffff;
+    text-align: center;
+    padding: 40px 0;
+    margin-top: auto;
+}
